@@ -54,10 +54,10 @@ int dfs(int row, int col, int current_height, int digged){
                 }
             }else if(map[moved_row][moved_col]-current_height<=K&&digged==0&&visited[moved_row][moved_col]==0){
                 // !!!지금 더 높은데 더 낮은 경우로 계산했다.(current_height-map[moved_row][moved_col]<=K)
-                // 최대 가능 공사 길이만큼  판적도 없다면,
-                // 굳이 데이터를 바꿀 필요는 없음
-                // !!! 1부터 하면 값도 안바뀌었는데 옆으로 가는 경우 생김
-                // !!!+1 해줘야 같을때도 1부터 테스트 해봄
+                // 최대 가능 공사 길이만큼  판적도 없다면 , 굳이 데이터를 바꿀 필요는 없음
+                // !!! 무조건 1부터 하면(int j = ~) 더 내려갈수 없는데 내려갈 수 있다고 판단하고 옆으로 가는 문제 생김
+                // 그래서 높이 차만큼 부터 시작 해야 한다.
+                // !!!map[moved_row][moved_col]-current_height"+1" 해줘야 같을때도 1부터 테스트 해봄
                 for(int j = map[moved_row][moved_col]-current_height+1; j<=K;j++){
                     current_length = 1 + dfs(moved_row, moved_col, map[moved_row][moved_col]-j, 1);
                     if(current_length>max_length){
@@ -68,13 +68,14 @@ int dfs(int row, int col, int current_height, int digged){
         }
         
     }
-    //visited[row][col] = 0;
+    //!!! visited 도 꼭 해줘야 한다.
+    visited[row][col] = 0;
     // 아무데도 방문 안하면 그냥 1이겠지?
     return max_length;
 }
 
 int find_max_height_and_search(int max_h){
-    // 일단 원하느 높이 있는 좌표들 찾기
+    // 일단 원하느 높이 있는 좌표들 찾고 dfs 돌리기
     int r, c, way_length, max_length = 0;
     for(r=0;r<N;r++){
         for(c=0;c<N;c++){
