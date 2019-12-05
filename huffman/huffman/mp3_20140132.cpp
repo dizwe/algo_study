@@ -202,7 +202,7 @@ void build_huffman_table(struct huff_heap * h ,string encode){
     }
 }
 
-void get_huffman_table_encode(string letters, int *frequencies){
+void get_huffman_table_encode(string letters, int *frequencies, char * file_name){
     // !! 없는 문자 깔끔하게 처리할 방법도 생각해보자...(근데 어차피 안쓸꺼면 만들어도 상관없을듯) -> 디버깅이 너무 힘들어요!!
     int ascii_real_num=0;
     for(int i=0;i<ASCII_NUM;i++)
@@ -270,48 +270,68 @@ void get_huffman_table_encode(string letters, int *frequencies){
 //        cout << " " <<  huff_table[letters[i]].c;
         
         string code = huff_table[letters[i]].code;
+        
 //        cout << "- " <<  code << "\n";
 //        printf(" %d,%d \n", byte_idx, bit_idx);
         for(int j =0 ; j<code.size();j++){
             byte_idx = real_length/8;
             bit_idx = real_length%8;
-            store_val(&zip_info[byte_idx],bit_idx,code[j]);
+            store_val(&zip_info[byte_idx],bit_idx,(int)code[j]-'0');
             real_length++;
         }
     }
+//    cout << "---------";
+//    cout << " " <<  huff_table[letters[0]].c;
+//    cout << "- " <<   huff_table[letters[0]].code << "\n";
     
-    for(int i =0 ; i<real_length;i++){
-        byte_idx = i/8;
-        bit_idx = i%8;
-//        printf("%d ",get_val(&zip_info[byte_idx],bit_idx));
-//        printf("%d,%d:%d ", byte_idx, bit_idx, get_val(&zip_info[byte_idx],bit_idx));
-    }
+    // 잘들어갔는지 확인 -> 잘들어감
+//    for(int i =0 ; i<real_length;i++){
+//        byte_idx = i/8;
+//        bit_idx = i%8;
+//        printf("%d ", get_val(&zip_info[byte_idx],bit_idx));
+//    }
     
     // encoding 한것 파일에 쓰기
-    ofstream ofs ("/Users/dizwe/programm/algo/huffman/mino.txt", ios::out|ios::trunc|ios::binary);
+    string huffman_encoded_file;
     
-    // encoding 위한 table 정보를 먼저 작성한다
+    huffman_encoded_file = string(file_name) + ".zz";
+    ofstream ofs (huffman_encoded_file, ios::out|ios::trunc|ios::binary);
+//    ofstream ofs ("/Users/dizwe/programm/algo/huffman/mino.txt", ios::out|ios::trunc|ios::binary);
+    
+    // encoding 위한 table 정보(전체 개수)를 먼저 작성한다
     int use_char_in_table_len = 0;
     for(int i =0 ; i<ASCII_NUM;i++)
         if(huff_table[i].use==1) use_char_in_table_len++;
-    ofs << use_char_in_table_len << "\n";
     
+    ofs << use_char_in_table_len << endl;
+    //ofs << "FUCKING" << endl;
+//    cout << "asd ::  "  << huff_table[10].c << endl;
     for(int i =0 ; i<ASCII_NUM;i++){
         if(huff_table[i].use==1) {
-            ofs << huff_table[i].c << "\n" << huff_table[i].code;
-            ofs << "\n";
+            //ofs<< i <<;
+            // "|"로 구분한다.
+            ofs << huff_table[i].c << huff_table[i].code << "|";
+            //ofs << "\n";
         }
     }
     
 //    for(int i=0;i<real_length; i++){
 ////        cout << " " << (int)bytes_to_ascii((&zip_info[i]));
 //        ofs << bytes_to_ascii((&zip_info[i]));
-//    }
+//    }i
+    
+    // 마지막 바이트는 전체 8bit가 차있지 않을수도 있으므로 어디까지가 진짜 정보인지 파악할 수 있도록 따로 저장한다.
+    ofs << real_length%8 << "\n";
+    // 전체 개수도 체크하면서 작성한다.
+    ofs << real_length/8+1 << "\n";
     
     // real_length가 실제 길이이므로 /8 한다.
-    for(int i=0;i<real_length/8; i++){
-//        cout << " " << (int)bytes_to_ascii((&zip_info[i]));
-        ofs << bytes_to_ascii((&zip_info[i]));
+    for(int i=0;i<real_length/8+1; i++){
+//        for(int j=0;j<8;j++){
+//            cout << get_val(&zip_info[i],j) << " " ;
+//        }
+//        cout<<(int) bytes_to_ascii((&zip_info[i]))<<" ";
+        ofs << (unsigned char) bytes_to_ascii((&zip_info[i]));
     }
 }
 
@@ -354,145 +374,148 @@ string char_to_bits(unsigned char one_char){
         
         // 나머지가 그 아래 자리수 값이다.
         char_int_info = char_int_info%((int)pow(2,i));
-        
     }
-    printf("\n");
-    // 반대로 적힐테니까
-//    reverse(bits_string.begin(), bits_string.end());
+//    cout << "::::::: " <<bits_string << endl;
     return bits_string;
 }
 
 
 int main(int argc, char *argv[])
 {
-    /*
-//        if(!strcmp(option,"-c")){
-    ifstream ifs ("/Users/dizwe/programm/algo/huffman/shorter.txt", ios::in);
-    char ascii = ifs.get();
-    string input_string;
-    //0으로 초기화해야 아무것도 없는 값도 잘 처리됨
-    int ascii_num[ASCII_NUM] = {0};
-//    char * option = argv[1];
-//    char * file_name = argv[2];
+    char* file_name, * option;
+    option = argv[1];
+    file_name = argv[2];
 
-    while(true){
-        if(ifs.eof()) break;
-        if(ifs.good()){
-            ascii_num[ascii]++;
-            input_string += ascii;
-            ascii = ifs.get();
+    if(!strcmp(option,"-c")){
+        ifstream ifs (file_name, ios::in);
+        char ascii = ifs.get();
+        string input_string;
+        //0으로 초기화해야 아무것도 없는 값도 잘 처리됨
+        int ascii_num[ASCII_NUM] = {0};
+
+        while(true){
+            if(ifs.eof()) break;
+            if(ifs.good()){
+                ascii_num[ascii]++;
+                input_string += ascii;
+                ascii = ifs.get();
+            }
         }
+
+        // compress하기!
+        get_huffman_table_encode(input_string, ascii_num, file_name);
+
     }
+    else if(!strcmp(option,"-d")){
+        ifstream ifs (file_name, ios::in|ios::binary);
+        
+        string huffman_decoded_file = string(file_name) + ".yy";
+        ofstream ofs (huffman_decoded_file, ios::out|ios::trunc|ios::binary);
+        
+        string buffer;
 
-
-    // compress하기!
-
-
-    get_huffman_table_encode(input_string, ascii_num);
-
-//    }
-
-    */
-    
-    
-    
-    
-    ///*
-    //    else if(!strcmp(option,"-d")){
-    ifstream ifs ("/Users/dizwe/programm/algo/huffman/mino.txt", ios::in|ios::binary);
-
-    string buffer;
-//    char buffer[20];
-
-    // 인코딩 테이블 얻기
-    getline(ifs, buffer);
-    ifs.peek();
-    int table_num = (int) (buffer[0]-'0');
-    cout << table_num << endl;
-
-//    struct huff_encode * code_table = (struct huff_encode *) malloc(sizeof(struct huff_encode)*table_num);
-    struct huff_encode * code_table = new huff_encode[table_num];
-
-    for(int i=0;i<table_num; i++){
-        string c_string;
-        getline(ifs, c_string);
+        // 인코딩 테이블 얻기
+        getline(ifs, buffer);
         ifs.peek();
-        // character 얻기
-        char c = (char)c_string[0];
-        code_table[i].c = c;
-        cout << c << endl;
+        int table_num = atoi(buffer.c_str());
+//        cout << table_num << endl;
 
-        // code 얻기
-        string code;
-        getline(ifs, code);
-        code_table[i].code = (string)code;
-        ifs.peek();
+        // C++에서 같은 의미다!
+        // struct huff_encode * code_table = (struct huff_encode *) malloc(sizeof(struct huff_encode)*table_num);
+        struct huff_encode * code_table = new huff_encode[table_num];
 
-//        cout << code << endl;
-    }
-
-    // code table 정렬하기(왜냐면 짧은거 부터 조건 찾아가면서 확인해야 하니까
-    quick_sort_table(code_table, 0, table_num-1);
-    
-    unsigned char one_byte = ifs.get();
-    string one_byte_bit_info;
-    string check_string = "";
-    string decoded_string = "";
-    
-    while(true){
-        if(ifs.eof()) break;
-        if(ifs.good()){
-            // 한글자를 bit 단위로 다시 풀기
-            one_byte_bit_info = char_to_bits(one_byte);
-            cout  << one_byte_bit_info<< "\n ";
+        for(int i=0;i<table_num; i++){
+            string c_string;
+            getline(ifs, c_string,'|');
+            char c = (char)c_string[0];
+            code_table[i].c = c;
+            code_table[i].code = c_string.substr(1);
             
-            // 한개씩 집어넣기
-            for(int i=0;i<8;i++){
-               // 한개씩 넣으면서 원하는 문자인지 확인하기
-               check_string += one_byte_bit_info[i];
-               // 한 문자 인코딩마다 확인하기
-                for(int j=0; j<table_num;j++){
-                    if(check_string.compare(code_table[j].code)== 0){
-                        decoded_string += code_table[j].c;
-                        check_string = "";
-                        break;
+//            getline(ifs, c_string,'|');
+//            ifs.peek();
+//            // character 얻기
+//            char c = (char)c_string[0];
+//            code_table[i].c = c;
+//            cout << c << endl;
+//
+//            // code 얻기
+//            string code;
+//            getline(ifs, code, '\n');
+//            code_table[i].code = (string)code;
+//            cout << "-" << code << endl;
+//            ifs.peek();
+        }
+        
+        
+
+        // code table 정렬하기(왜냐면 짧은거 부터 조건 찾아가면서 확인해야 하니까
+        quick_sort_table(code_table, 0, table_num-1);
+        
+        string last_bit_num_str;
+        getline(ifs, last_bit_num_str);
+        int last_bit_num = atoi(last_bit_num_str.c_str());
+        // get 하다가 getline하면 안되더라. .
+        // int last_bit_num = (int)ifs.get()-'0';
+        ifs.peek();
+        string total_bit_num_str;
+        getline(ifs, total_bit_num_str);
+        int total_bit_num = atoi(total_bit_num_str.c_str());;
+//        cout<<total_bit_num<<":]\n";
+  
+        int byte_count = 0;
+        
+        string one_byte_bit_info;
+        unsigned char one_byte = ifs.get();
+//        cout << "first_byte"<<(unsigned int)one_byte <<"\n";
+//        one_byte_bit_info = char_to_bits(one_byte);
+//        cout  << one_byte_bit_info<< "\n ";
+//        one_byte = ifs.get();
+//        cout << "SECOND_byte"<<(unsigned int)one_byte <<"\n";
+//        one_byte_bit_info = char_to_bits(one_byte);
+//        cout  << one_byte_bit_info<< "\n ";
+        
+//        string one_byte_bit_info;
+        string check_string = "";
+        string decoded_string = "";
+        
+        while(true){
+            if(ifs.eof()) break;
+            if(ifs.good()){
+                // 한글자를 bit 단위로 다시 풀기
+                one_byte_bit_info = char_to_bits(one_byte);
+//                cout  << one_byte_bit_info<< "\n ";
+                
+                // 한개씩 집어넣기
+                byte_count++;
+                for(int i=0;i<8;i++){
+                   // 한개씩 넣으면서 원하는 문자인지 확인하기
+                   check_string += one_byte_bit_info[i];
+                   // 한 문자 인코딩마다 확인하기
+                    for(int j=0; j<table_num;j++){
+                        // 마지막 bit이면서 실제 데이터가 아닌 비트일때 짤라버리기
+                        // last_bit_num은 1부터 시작하도록 작서했으므로 -1하기
+                        if((byte_count==total_bit_num)&&(i>last_bit_num-1)){
+//                            cout<<"break"<<byte_count<<i;
+                            break;
+                        }else{
+                            if(check_string.compare(code_table[j].code)== 0){
+                                decoded_string += code_table[j].c;
+//                                cout << "decode : " << decoded_string << endl;
+                                check_string = "";
+                                break;
+                            }
+                        }
                     }
                 }
+                
+                one_byte = ifs.get();
             }
-            
-            one_byte = ifs.get();
         }
+        ofs << decoded_string;
     }
-    cout << decoded_string;
-    
 
-    // Error 넣기!!
-    //*/
-//    while ( != EOF) {
-//      // std::getline은 입력 스트림에서 string으로 한 줄을 읽습니다.
-//
-//
-//    }
+    // Error 처리하기!!!
     
-        
-//    }
-    
-    // 인코딩하고 table 만들기
-    
-    // 글자씩 돌아가면서 encoding 하기
-    
-    // encoding 하고 어떻게 하냐...?
-    
-
-
-
-//
-    
-
-//
-//    printf(" BIT = %lu byte \n", sizeof(bb[0]) );
-    
-
         
     return 0;
 }
