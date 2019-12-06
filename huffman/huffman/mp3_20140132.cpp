@@ -183,6 +183,7 @@ void insert_to_heap(struct huff_heap new_heap){
 void build_huffman_table(struct huff_heap * h ,string encode){
     // h_heap 기반으로 만든다.
     // !!! h->parent가 parent가 아닌데도 1이 되는 경우 잇음
+    // h->c가 0으로 처리했지!
     if((h->parent==1)&&(h->c==0)){
         // !!! check NULL은 아닌데 주소값만 있는 경우도 있음
         if((h->left!=NULL)&&(h->left->freq>0)){
@@ -204,19 +205,16 @@ void build_huffman_table(struct huff_heap * h ,string encode){
 
 void get_huffman_table_encode(string letters, int *frequencies, char * file_name){
     // !! 없는 문자 깔끔하게 처리할 방법도 생각해보자...(근데 어차피 안쓸꺼면 만들어도 상관없을듯) -> 디버깅이 너무 힘들어요!!
+
+    // ascii_real_num으로 실제로 "쓴 단어만 사용하자"
     int ascii_real_num=0;
     for(int i=0;i<ASCII_NUM;i++)
         if(frequencies[i]>0) ascii_real_num++;
-    
+    // cout<<ascii_real_num;
     h_heap = (struct huff_heap*) malloc(sizeof(struct huff_heap)* ascii_real_num);
 
     // 각자 떨어져있는 heap을 만들고 정렬한다.
     heap_init(frequencies);
-    
-//    for(int i =0; i<ascii_real_num;i++){
-//        cout <<" " <<h_heap[i].freq<<"-" <<(char)h_heap[i].c;
-//    }
-
     
     // 정렬하기(by quick sort)
     quick_sort_heap(0, ascii_real_num-1);
@@ -224,7 +222,7 @@ void get_huffman_table_encode(string letters, int *frequencies, char * file_name
 //    for(int i =0; i<ascii_real_num;i++){
 //        cout << " " <<h_heap[i].freq<< "-" <<(char)h_heap[i].c;
 //    }
-//    printf("\n");
+   printf("\n");
 
     huff_heap * u;
     huff_heap * v;
@@ -233,46 +231,36 @@ void get_huffman_table_encode(string letters, int *frequencies, char * file_name
     for(int i=1; i<ascii_real_num; i++){
         // ?? 이렇게 temp 안쓰고 받을 방법이 없나? 꼭 struct 안에는 *로 나를 refer 해야하나?!!!(github 이상한점 보기)
         u = get_min_heap(h_heap_num);
-//        u = &u_temp;
-//        cout << " " <<u->freq<< "_____" <<(char)u->c;
+        // cout << " " <<u->freq<< "_____" <<(char)u->c;
         v = get_min_heap(h_heap_num);
-//        v = &v_temp;
-//        cout << " " <<v->freq<< "_____" <<(char)v->c;
+        // cout << " " <<v->freq<< "_____" <<(char)v->c;
         
         struct huff_heap w;
         w.left = u;
         w.right = v;
+    
         w.freq = u->freq + v->freq;
-//        cout << " !@#" << w.freq;
         w.parent = 1; // parent 알아보기 쉽게 표현
+        w.c = 0;// parent 는 NULL 문자로도 바꾼다. 안하면 엉뚱한 문자가 null이 되더라.(build huff table에서 체크 함)
 
         insert_to_heap(w);
     }
 
-//    for(int i =0; i<ASCII_NUM;i++){
-//        cout << " " <<h_heap[i].freq<< "-" <<(char)h_heap[i].c;
-//    }
+    // 이제 h_heap[0]만 있음(다 합쳐졌으니까)
     
     // heap tree 기반으로 huffman tree 만들기
     build_huffman_table(&h_heap[0],"");
-    // !!! tree 다니면서 free 해야할 듯.
+    // cout << h_heap[0].left->c << h_heap[0].left->freq;
     
     // huffman tree 이용해서 encoding 하기
     BIT * zip_info;
     zip_info = (struct BIT *) malloc(sizeof(struct BIT)*letters.size());
-//    int k;
     int real_length=0;
     int byte_idx, bit_idx;
         
     for(int i =0 ; i<letters.size();i++){
-
-        // 한 글자씩 넣기
-//        cout << " " <<  huff_table[letters[i]].c;
-        
         string code = huff_table[letters[i]].code;
-        
-//        cout << "- " <<  code << "\n";
-//        printf(" %d,%d \n", byte_idx, bit_idx);
+        // cout << "- " <<  code << "\n";
         for(int j =0 ; j<code.size();j++){
             byte_idx = real_length/8;
             bit_idx = real_length%8;
@@ -280,9 +268,6 @@ void get_huffman_table_encode(string letters, int *frequencies, char * file_name
             real_length++;
         }
     }
-//    cout << "---------";
-//    cout << " " <<  huff_table[letters[0]].c;
-//    cout << "- " <<   huff_table[letters[0]].code << "\n";
     
     // 잘들어갔는지 확인 -> 잘들어감
 //    for(int i =0 ; i<real_length;i++){
@@ -293,10 +278,8 @@ void get_huffman_table_encode(string letters, int *frequencies, char * file_name
     
     // encoding 한것 파일에 쓰기
     string huffman_encoded_file;
-    
     huffman_encoded_file = string(file_name) + ".zz";
     ofstream ofs (huffman_encoded_file, ios::out|ios::trunc|ios::binary);
-//    ofstream ofs ("/Users/dizwe/programm/algo/huffman/mino.txt", ios::out|ios::trunc|ios::binary);
     
     // encoding 위한 table 정보(전체 개수)를 먼저 작성한다
     int use_char_in_table_len = 0;
@@ -304,8 +287,7 @@ void get_huffman_table_encode(string letters, int *frequencies, char * file_name
         if(huff_table[i].use==1) use_char_in_table_len++;
     
     ofs << use_char_in_table_len << endl;
-    //ofs << "FUCKING" << endl;
-//    cout << "asd ::  "  << huff_table[10].c << endl;
+
     for(int i =0 ; i<ASCII_NUM;i++){
         if(huff_table[i].use==1) {
             //ofs<< i <<;
@@ -333,6 +315,8 @@ void get_huffman_table_encode(string letters, int *frequencies, char * file_name
 //        cout<<(int) bytes_to_ascii((&zip_info[i]))<<" ";
         ofs << (unsigned char) bytes_to_ascii((&zip_info[i]));
     }
+
+     // !!! tree 다니면서 free 해야할 듯.
 }
 
 int quick_sort_partition_table(struct huff_encode * table, int left, int right){
@@ -388,11 +372,18 @@ int main(int argc, char *argv[])
 
     if(!strcmp(option,"-c")){
         ifstream ifs (file_name, ios::in);
+        if(!ifs.is_open())
+        {
+          // error! maybe the file doesn't exist.
+            cout << "FILE NOT EXIST ERROR!";
+            return 0;
+        }
         char ascii = ifs.get();
         string input_string;
         //0으로 초기화해야 아무것도 없는 값도 잘 처리됨
         int ascii_num[ASCII_NUM] = {0};
 
+        // 문자 하나씩 세면서 아스키 코드별 몇개인지 센다.
         while(true){
             if(ifs.eof()) break;
             if(ifs.good()){
@@ -408,6 +399,12 @@ int main(int argc, char *argv[])
     }
     else if(!strcmp(option,"-d")){
         ifstream ifs (file_name, ios::in|ios::binary);
+        if(!ifs.is_open())
+        {
+          // error! maybe the file doesn't exist.
+            cout << "FILE NOT EXIST ERROR!";
+            return 0;
+        }
         
         string huffman_decoded_file = string(file_name) + ".yy";
         ofstream ofs (huffman_decoded_file, ios::out|ios::trunc|ios::binary);
@@ -512,6 +509,8 @@ int main(int argc, char *argv[])
             }
         }
         ofs << decoded_string;
+    }else{
+        cout << "option ERROR!";
     }
 
     // Error 처리하기!!!
