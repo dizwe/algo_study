@@ -1,3 +1,6 @@
 .DS_Store
 *.xcodeproj
 *.txt
+*.out
+*.zip
+*.o
