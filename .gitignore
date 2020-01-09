@@ -4,3 +4,5 @@
 *.out
 *.zip
 *.o
+.vscode/
+mp*
