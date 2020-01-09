@@ -7,6 +7,8 @@ int queue[MAX_VERTAX];
 int front, rear, node_num;
 
 
+// https://gommuluk.tistory.com/m/entry/DFS와-BFS?category=740023
+
 // 이 방식이 간단하긴 한데 queue 크기를 보장 못한다.(계속해서 front, rear증가함)
 // 크기를 다시 돌려주는 애가 필요할 듯
 // 원형 큐
