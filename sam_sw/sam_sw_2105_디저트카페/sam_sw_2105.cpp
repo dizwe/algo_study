@@ -50,7 +50,7 @@ int find_max_route(vector<vector<int> > dessert_map, int map_size){
     vector<bool> eat_fruit(MAX_FRUIT, false); 
 
     for(int i =0; i<map_size-2; i++){ // 두칸 위까지만 돌아가도 된다! 
-        for(int j =0; j<map_size-1; j++){ // 제일 오른쪽 건 안들어 가도 된다. 
+        for(int j =1; j<map_size-1; j++){ // 제일 오른쪽 건 안들어 가도 된다. 
             start_cord = make_pair(i,j); // 시작점에 돌아왔는지 나중에 확인하기 위함
             // 일단 싹 비우기
             // visited는 통째로 비워야지! 
@@ -84,67 +84,78 @@ int find_max_route(vector<vector<int> > dessert_map, int map_size){
                 // 내가! 방문했는지 확인하기
                 // if(visited[current_cord.first][current_cord.second]==false){
                     // 내가 시작점이면서 direction_info ==0 면 visted 체크안해야 다음으로 돌아올수 있을듯
-                    // cout << current_cord.first << " " << current_cord.second << "--\n";
+                    // cout << "current" <<  current_cord.first << " " << current_cord.second << "--\n";
                     if(!(direction_info==0&& start_cord.first==current_cord.first && start_cord.second == current_cord.second)){
                         //     visited[current_cord.first][current_cord.second] = true;
                         // 여기 두면 시작점 디저트를 먹어버리면 돌아올 땐 디저트를 이미 먹었으니까 못먹었다고 말한다!(if문 안에 둬야 함!!)
                         eat_fruit[current_dessert_num] = true; // 디저트 종류도 하나 늘겠네!( 겹치는건 이미 stack 넣을 때 안넣음)
                         dessert_num[direction_info]++; // 디저트 한개 더 먹을 수 있겠네!
                     }
+
                     // 가능성 순회
                     // 방향을 소진하고 이제 나라면!-> 더이상 나아가지 말고 dessert_num 잘 체크하기
-                    if(direction_info==3&& start_cord.first==current_cord.first && start_cord.second == current_cord.second){
-                        int total_dessert_num = 0;
-                        for(int one_d = 0; one_d<DIRECTION_NUM; one_d++) total_dessert_num += dessert_num[one_d]; 
-                        if(total_dessert_num>max_result) max_result = total_dessert_num;
-                    }else if(direction_info==3){
-                        // 3번이면서 도착하지 않으면 그대로 직진!(사실 stack 안쌓고 가도 상관은 없는데)
-                        // 그대로 가기
-                        next_cord = get_next_cord(current_cord, direction_info);
-                        // 방문안하고 벽을 안넘고 먹은 디저트도 아니면 돌리기
-                        if(inside_the_wall(next_cord, map_size)){
-                            next_dessert_num = dessert_map[next_cord.first][next_cord.second];
-                            if(dessert_not_exist(eat_fruit, next_dessert_num)){     // visited[next_cord.first][next_cord.second]==false  && 
-                                stack_temp.cord = next_cord;
-                                stack_temp.direction_info = direction_info;
-                                stack_temp.dessert_num = dessert_num;
-                                stack_temp.eat_fruit = eat_fruit;
-                                map_stack.push(stack_temp);
+                    if(direction_info==2){ // 이제 방향이 2번이라면 끝까지 정보대로 걷기
+                        // cout<<dessert_num[0] << " "<<dessert_num[1] << " \n";
+                        // 2번 방향으로 걷기 0번 방향 개수 참고해서!
+                        bool avail = true; // 가다가 벽 넘어간다거나 이미 있던 디저트 먹거나 하진 않았니?
+                        while(dessert_num[direction_info]<dessert_num[0]) {
+                            // cout<<current_cord.first << " "<<current_cord.second;
+                            // 이미 위에서 eat_fruit된건 가능하다고 체크된거야!
+                            current_cord = get_next_cord(current_cord, direction_info);
+                            // 만나는 중에 벽 만났으면 그냥 그만둬도 됨!
+                            if(inside_the_wall(current_cord, map_size)){
+                                current_dessert_num = dessert_map[current_cord.first][current_cord.second];
+                                if(dessert_not_exist(eat_fruit, current_dessert_num)){
+                                    // cout << "current" <<  current_cord.first << " " << current_cord.second << "--\n";
+                                    eat_fruit[current_dessert_num] = true;
+                                    dessert_num[direction_info]++; 
+                                }else{
+                                    avail = false;
+                                    break;
+                                }
+                            }else{
+                                avail=false;
+                                break;
+                            }
+
+                            
+                        }
+                        // cout <<"000";
+                        // 3번 방향으로 걷기
+                        direction_info++;
+                        while(dessert_num[direction_info]<dessert_num[1]&&avail) {
+                            // 이미 위에서 eat_fruit된건 가능하다고 체크된거야!
+                            current_cord = get_next_cord(current_cord, direction_info);
+                            
+                            // 만나는 중에 벽 만났으면 그냥 그만둬도 됨!
+                            if(inside_the_wall(current_cord, map_size)){
+                                current_dessert_num = dessert_map[current_cord.first][current_cord.second];
+                                // cout << "next" <<  current_cord.first << " " << current_cord.second << "--\n";
+                                // cout << current_dessert_num;
+                                if(dessert_not_exist(eat_fruit, current_dessert_num)){
+                                    // cout << "current" <<  current_cord.first << " " << current_cord.second << "--\n";
+                                    eat_fruit[current_dessert_num] = true;
+                                    dessert_num[direction_info]++; 
+                                }else{
+                                    avail = false;
+                                    break;
+                                }
+                            }else{
+                                avail=false;
+                                break;
                             }
                         }
-                    }else if(direction_info==2){// 2번이면 따라가거나 방향 바꾸기!
-                        // 아직 번호가 안차면 따라가기
-                        if(dessert_num[direction_info]<dessert_num[0]){// 그대로 가기
-                            next_cord = get_next_cord(current_cord, direction_info);
-                            // 방문안하고 벽을 안넘고 먹은 디저트도 아니면 돌리기
-                            if(inside_the_wall(next_cord, map_size)){
-                                next_dessert_num = dessert_map[next_cord.first][next_cord.second];
-                                if(dessert_not_exist(eat_fruit, next_dessert_num)){     // visited[next_cord.first][next_cord.second]==false  && 
-                                    stack_temp.cord = next_cord;
-                                    stack_temp.direction_info = direction_info;
-                                    stack_temp.dessert_num = dessert_num;
-                                    stack_temp.eat_fruit = eat_fruit;
-                                    map_stack.push(stack_temp);
-                                }
-                            }
-                        }else{// 다 차면 방향 바꾸기
-                            // if(dessert_num[direction_info]>0){ // 이건 필요가 없음!(개수 똑같게 돌아갈테니)
-                            next_cord = get_next_cord(current_cord, direction_info+1);
-                            if(inside_the_wall(next_cord, map_size)){
-                                // 얘를 if문 밖에 뒀었는데 그러면 범위 넘어갈 떄 오류 생긴다!
-                                next_dessert_num = dessert_map[next_cord.first][next_cord.second];
-                                // 방문안하고 벽을 안넘고 먹은 디저트도 아니면 돌리기
-                                if(dessert_not_exist(eat_fruit, next_dessert_num)){ //visited[next_cord.first][next_cord.second]==false  && 
-                                    stack_temp.cord = next_cord;
-                                    stack_temp.direction_info = direction_info+1;
-                                    stack_temp.dessert_num = dessert_num;
-                                    stack_temp.eat_fruit = eat_fruit;
-                                    map_stack.push(stack_temp);
-                                }
-                            }
-                            // }
-                        }   
-                    }else{ // 아니면 전체 돌기
+                        // cout <<"111";
+                        // cout << "current" <<  current_cord.first << " " << current_cord.second << "--\n";
+                        // cout << "avail" << avail << "\n";
+
+                        // 다 돌고 정보 확인하기
+                        if(start_cord.first==current_cord.first && start_cord.second == current_cord.second && avail){
+                            int total_dessert_num = 0;
+                            for(int one_d = 0; one_d<DIRECTION_NUM; one_d++) total_dessert_num += dessert_num[one_d]; 
+                            if(total_dessert_num>max_result) max_result = total_dessert_num;
+                        }
+                    }else{ // 0번, 1번에서는 그냥 돌기
                         // 그대로 가기
                         next_cord = get_next_cord(current_cord, direction_info);
                         // 방문안하고 벽을 안넘고 먹은 디저트도 아니면 돌리기
