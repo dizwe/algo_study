@@ -6,7 +6,7 @@ using namespace std;
 int main(){
     // STACK과 QUEUE는 iterator가 없이 계속 pop,push 하는거다
     // empty, size, push, pop 공통적으로 있음
-    ////////////// STACK
+    ////////////// QUEUE
     // !!top
     queue<int> a; 
     cout << a.empty() << ' ';
@@ -18,7 +18,7 @@ int main(){
     cout << a.front();
     cout << "----\n";
 
-    ////////////// QUEUE
+    ////////////// STACK
     // !! back, front 
     stack< int> b; 
     b.push(44);
