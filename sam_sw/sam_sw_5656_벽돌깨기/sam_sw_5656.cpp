@@ -13,7 +13,7 @@ using namespace std;
 
 int init_blocks[MAX_H][MAX_W]; // 처음 블록 모양
 int N, W, H;
-int min_result = INT_MAX; // 일단 int_max로 잡기
+int min_result;
 
 typedef struct que_content { 
     int shoot_num;
@@ -32,11 +32,12 @@ int direction[4][2] = {{0,1},{1,0},{0,-1},{-1,0}};
 
 bool inside_map(int r, int c);
 
-void explode(int start_row, int start_col, bool already_explode[][MAX_W], vector< vector<int> > blocks);
+void explode(int start_row, int start_col, bool already_explode[][MAX_W], vector< vector<int> > & blocks);
 
-void rearrange(vector< vector<int> > blocks);
+void rearrange(vector< vector<int> > & blocks);
 
-void shoot(int block_col_cord, vector< vector<int> > blocks);
+//!! C++에서 **나 * 모두 simplified 되어서 &로 바뀌었따!
+void shoot(int block_col_cord, vector< vector<int> > & blocks);
 
 int get_left_block_num(vector< vector<int> > blocks);
 
@@ -45,18 +46,24 @@ void find_min_left_block();
 
 
 int main(){
-    cin >> N >> W >> H;
-    int result;
+    int T;
+    cin >> T;
+    for(int t=1;t<=T;t++){
+        min_result = INT_MAX; // 일단 int_max로 잡기
+        cin >> N >> W >> H;
+        int result;
 
-    for(int r=0;r<H;r++){
-        for(int c=0;c<W;c++){
-            cin >> init_blocks[r][c];
+        for(int r=0;r<H;r++){
+            for(int c=0;c<W;c++){
+                cin >> init_blocks[r][c];
+            }
         }
-    }
 
-    // !!! 매번 할때마다 rearrage 해줘야 그 이후에 것들이 내려가고 파괴되지 않는다/
-    find_min_left_block();
-    cout << min_result;
+        // !!! 매번 할때마다 rearrage 해줘야 그 이후에 것들이 내려가고 파괴되지 않는다/
+        find_min_left_block();
+        cout << "#" << t << " "<<min_result << "\n";
+    }
+    
     
     return 0;
 }
@@ -68,7 +75,7 @@ bool inside_map(int r, int c){
 // !! ROW, COL W,H 다룰떄 조심해야 한다 ㅜㅜ 정말 헷갈리거든 아예 변수를 r,c로 하고 row, col으로 대칭시켜주자
 // W, H 도 받고나서 R, C로 바꿔줘도 좋을듯
 // 이차원??->!!! malloc 해서 얻으면 어떻게 전달행야 되는거지?????? new 사용한다면 _> test
-void explode(int start_row, int start_col, bool already_explode[][MAX_W], vector< vector<int> > blocks){ // 좌표 입력
+void explode(int start_row, int start_col, bool already_explode[][MAX_W], vector< vector<int> > & blocks){ // 좌표 입력
     // 일단 나는 터진다!
     already_explode[start_row][start_col] = true;
     int explode_power = blocks[start_row][start_col];
@@ -92,7 +99,7 @@ void explode(int start_row, int start_col, bool already_explode[][MAX_W], vector
     }
 }
 
-void rearrange(vector< vector<int> > blocks){
+void rearrange(vector< vector<int> > & blocks){
     for (int c=0; c<W; c++){
         int new_col[H];
         fill(&new_col[0], &new_col[H], 0);
@@ -110,7 +117,7 @@ void rearrange(vector< vector<int> > blocks){
     }
 }
 // xy보다 col, row로 표현하자
-void shoot(int block_col_cord, vector< vector<int> > blocks){
+void shoot(int block_col_cord, vector< vector<int> > & blocks){
     // 0이 아닌 첫번째 블록 찾기
     for(int row_i = 0; row_i<H; row_i++){
         if(blocks[row_i][block_col_cord]!=0){ 
@@ -156,23 +163,23 @@ void find_min_left_block(){
             que_content next_que_elem;
             for(int c=0; c<W; c++){ // column 크기만큼 돌면서 체크
                 next_que_elem = que_elem; // 이렇게 변수를 지정해줘야 쏠때마다 이전 상태가유지되겠지?!!
-                cout << "BEFORE\n";
-                for(int r=0;r<H;r++){
-                    for(int c=0;c<W;c++){
-                        cout << next_que_elem.blocks[r][c] << " ";
-                    }
-                    cout << "\n";
-                }
+                // cout << "BEFORE\n";
+                // for(int r=0;r<H;r++){
+                //     for(int c=0;c<W;c++){
+                //         cout << next_que_elem.blocks[r][c] << " ";
+                //     }
+                //     cout << "\n";
+                // }
                 shoot(c,next_que_elem.blocks);
                 rearrange(next_que_elem.blocks); 
                 // 홀.... 아예 값이 바뀌지를 않네... -> 진짜 call by value인가봐...
-                cout << "AFTER\n";
-                for(int r=0;r<H;r++){
-                    for(int c=0;c<W;c++){
-                        cout << next_que_elem.blocks[r][c] << " ";
-                    }
-                    cout << "\n";
-                }
+                // cout << "AFTER\n";
+                // for(int r=0;r<H;r++){
+                //     for(int c=0;c<W;c++){
+                //         cout << next_que_elem.blocks[r][c] << " ";
+                //     }
+                //     cout << "\n";a
+                // }
                 next_que_elem.shoot_num += 1;
                 // !!! next_que_elem.blocks는 수정된 상태겠지?? ????아니면 어떡하지... - call by value, reference
                 que.push(next_que_elem);
@@ -181,7 +188,7 @@ void find_min_left_block(){
             int result = get_left_block_num(que_elem.blocks);
             if(result<min_result) min_result= result;
         }
-
+        //!!!! 0들어있으면 아무것도 터트릴 필요도 없는데 괜히 돈다! 체크해서 좀 줄여보자
     }
 }
 
