@@ -7,3 +7,4 @@
 .vscode/
 mp*
 *.bin
+test.cpp

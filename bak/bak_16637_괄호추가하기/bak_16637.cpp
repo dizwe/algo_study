@@ -53,14 +53,6 @@ void find_max(int cur_operator_idx, bool prev_use_parenthesis, vector<bool> use_
         // 다 끝나도 못집어 넣을 수도 있다(전부 괄호 없을 때)
         if(use_par==false) parenthesise_calculated.push_back(operand_list[operand_list.size()-1]);
 
-        // DEBUG
-        // for(int i=0; i< parenthesise_calculated.size(); i++) cout << parenthesise_calculated[i] << " ";
-        // cout << "\n";
-        // for(int i=0; i< without_parenthesis_operator.size(); i++) cout << without_parenthesis_operator[i] << " ";
-        // cout << "\n";
-        // for(int i=0; i< use_parenthesis_list.size(); i++) cout << use_parenthesis_list[i] << " ";
-        // cout << "\n";
-
         // 일단 이제 오른쪽 operand를 계속 사용하면 되니까 왼쪽거는 미리 넣는다.
         result = parenthesise_calculated[0];
         for(int i=0; i<without_parenthesis_operator.size();i++){
