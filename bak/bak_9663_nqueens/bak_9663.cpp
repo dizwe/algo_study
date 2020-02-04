@@ -1,77 +1,64 @@
 #include <iostream>
+#include <cmath>
 // 여기에 ; 붙이지마!!
 #define CANNOT_ATTACK false
 #define CAN_ATTACK true
 #define DIRECTION_NUM true
+#define NOT_EXIST_NUM -42
 using namespace std;
 
 int N;
 int cannot_attack_num = 0;
 
-bool inside_map(int r, int c){
-    return r<N && c< N && r>=0 && c >=0;
-}
-
-bool attack_check(int** board,int queen_row, int check_col){
-    // 지금 추가된 애만 체크하면 됨 그 앞에 애는 이미 걔들끼리는 피해있음.
-    // 가로
-    for(int c =0; c<N; c++){
-        if(c!=check_col && board[queen_row][c] ==1)
-            return CAN_ATTACK;
-    }
-    // 세로 
-    for(int r =0; r<N; r++){
-        if(r!=queen_row && board[r][check_col] ==1)
-            return CAN_ATTACK;
-    }
-    int direction_info[4][2] = {{-1,-1},{1,1},{1,-1},{-1,1}};
-    // 왼쪽위로 가는 대각선
-    for(int direction = 0; direction<4; direction++){
-        for(int step =0; step<N; step++){
-            int test_row = queen_row + direction_info[direction][0]*step;
-            int test_col = check_col + direction_info[direction][1]*step; 
-            if(inside_map(test_row, test_col)==false) break; // 지도 밖 벗어나면 끝!
-            if(test_row!=queen_row && test_col!=check_col && board[test_row][test_col] ==1)
+bool attack_check_prev(int* board, int until_col){
+    // 모두다 0일때에는 처리되면 안되는데...
+    for(int c1=0; c1<until_col-1; c1++){
+        for(int c2=c1+1; c2<until_col; c2++){ // c1이 체크했으면 그 이후거 체크하면 되지
+            if(board[c1]==board[c2] || abs(board[c1]-board[c2]) == abs(c1-c2))
                 return CAN_ATTACK;
-        }
+        }    
     }
-
     return CANNOT_ATTACK;
 }
 
-void dfs_find(int current_col, int queen_row,int** board){
-    // 제일 마지막 종료 조건
-    if(current_col == N && attack_check(board, queen_row, current_col-1)==CANNOT_ATTACK){
+bool attack_check(int* board, int until_col){
+    // 한개 더 추가된 상태로 확인되니까 -1
+    int current_col = until_col-1;
+    // 모두다 0일때에는 처리되면 안되는데...
+    for(int c=0; c<current_col; c++){ 
+        if(board[current_col]==board[c] || abs(board[current_col]-board[c]) == abs(current_col-c))
+            return CAN_ATTACK;
+    }
+    return CANNOT_ATTACK;
+}
+
+void dfs_find(int current_col, int* board){
+    // for(int r=0; r < N; r++) cout<< board[r] << " ";
+    // cout << "\n";
+    if(current_col == N && attack_check(board,current_col)==CANNOT_ATTACK){
         cannot_attack_num++;
         return;
-    }else if(current_col == N){
-        return;
-    }
+    }    
 
-    if(attack_check(board,queen_row, current_col-1)==CANNOT_ATTACK){ // 이전걸 빼야지 지금까지 추가된 애 체크가능하다.
-        // cout << current_col << " ";
+    if(attack_check(board,current_col)==CANNOT_ATTACK){
         for(int r=0; r < N; r++){
-            board[r][current_col] = 1; // 일단 말한 자리에 퀸 두기
-            dfs_find(current_col+1, r, board);
-            board[r][current_col] = 0; // 일단 말한 자리에 퀸 빼기
+            board[current_col] = r; // 일단 말한 자리에 퀸 두기
+            dfs_find(current_col+1, board);    
+            board[current_col] = 0; // 일단 말한 자리에 퀸 빼기
         }
-    }else{
-        return;
     }
+    return;
 }
 
 int main(){
     cin >> N;
-    int** board = new int*[N];
-    for(int i=0; i<N; i++) board[i] = new int[N];
-    fill(&board[0][0], &board[N-1][N], 0);// 0으로 채워넣기
+    int* board = new int[N];
+    fill(&board[0], &board[N], NOT_EXIST_NUM);// 0으로 채워넣기
 
-    // board[r][0] = 1; // 일단 말한 자리에 퀸 두기
-    
     for(int r=0; r < N; r++){
-        board[r][0] = 1; // 일단 말한 자리에 퀸 두기
-        dfs_find(0+1, r, board);    
-        board[r][0] = 0; // 일단 말한 자리에 퀸 빼기
+        board[0] = r; // 일단 말한 자리에 퀸 두기
+        dfs_find(1, board);    
+        board[0] = 0; // 일단 말한 자리에 퀸 빼기
     }
     cout << cannot_attack_num;
     return 0;
