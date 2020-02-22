@@ -18,7 +18,7 @@ int main(){
     // ?? vector<int> each_person_total[PERSON_NUM+1] 이렇게 하면 안되나?? begin end 안됨
     vector<vector <int> > person_info;
     person_info.resize(INNING_NUM+1);
-    vector<int> each_person_total; // 일부러 전부 0인거 나중에 사용할 수 있도록!
+    vector<int> each_person_total; // 일부러 전부 0인거 나중에 permutation에서 안돌려도 되게 걸러낼 수 있게
     each_person_total.resize(PERSON_NUM+1);
     fill(each_person_total.begin(), each_person_total.end(), 0);
     
@@ -43,13 +43,9 @@ void find_max_score(vector<vector <int> > & person_info){
     //cand_list.resize(PERSON_NUM-1);
     vector<int> real_cand_list; // 1번도 추가된 cand_list
     
-    
-     real_cand_list.resize(PERSON_NUM+1);
+    real_cand_list.resize(PERSON_NUM+1);
     //1번은 빠진 상태로 permutation 돌리기
     for(int cand=2; cand <= PERSON_NUM; cand++) cand_list.emplace_back(cand);
-//    cout << cand_list.size();
-//    for(int a =0; a<cand_list.size();a++) cout<< cand_list[a];
-//    cout << "\n";
     
     do{
         vector<int> ground_info;
@@ -72,14 +68,12 @@ void find_max_score(vector<vector <int> > & person_info){
             // out 넘어가면 다음거 하면 됨!
             while(out_num<3){
                 current_person_idx = (current_person_idx)%PERSON_NUM + 1; // !!1부터 시작할 때!
-//                cout << current_person_idx;
                 int current_person = real_cand_list[current_person_idx];
                 if(person_info[inning][current_person]==0){ // 안타를 칠지 등 내용이 적혀 있음
                     out_num++;
                 }else{
                     // 1루 2루 3루 홈런 K루 만큼 이동 하면서 체크
                     ground_info[0] = 1; // 처음에 서는 점
-//                    cout <<person_info[inning][current_person];
                     for(int lu=1; lu<=person_info[inning][current_person]; lu++){
                         // 한개씩 밀기
                         for(int g=GROUND_NUM; g>0; g--){
