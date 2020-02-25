@@ -69,7 +69,7 @@ void simulate(int t){
         // 1시간 더 경과한 것 처럼 만들기
         vector<int> erase_list;
         for(int cidx =0; cidx<live_cells.size(); cidx++){
-            cell_info one_cell = live_cells[cidx]; // reference로 받기?????!!! 가능한가?? 왜 안되지..
+            cell_info & one_cell = live_cells[cidx]; // reference로 받기?????!!! 가능한가?? 왜 안되지..
             // 살아 있는 애라면
             if(one_cell.full==true && one_cell.wait_time>0){ // 살아있는데 휴지기인 cell이라면
                 // wait time 낮추기(두개 관리하는게 좀 힘드네)
