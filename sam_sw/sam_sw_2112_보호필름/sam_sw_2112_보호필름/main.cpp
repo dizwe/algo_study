@@ -1,19 +1,24 @@
 #include <iostream>
 #include <vector>
+#include <cstring>
 #define EMPTY 99
 #define PASS true
+#define MAX_WIDTH 20 + 1
+#define MAX_DEPTH 13 + 1
 using namespace std;
 
 int DEPTH, WIDTH, K;
 bool find_or_not = false;
-vector<vector <short> > film;
-vector<vector <short> > film_test;
-vector<short> med_info; // 몇번 약을 썼는지도 적어줘야 함
+//vector<vector <short> > film;
+//vector<vector <short> > film_test;
+short film[MAX_DEPTH][MAX_WIDTH];
+short film_test[MAX_DEPTH][MAX_WIDTH];
+short med_info[MAX_DEPTH]; // 몇번 약을 썼는지도 적어줘야 함
 
 void find_min_med2(int med_num, int current_idx, int med);
 void find_min_med(int med_max_num, int current_idx, int current_med_num,int med);
 
-bool check_film(vector<vector <short> > &film_test);
+bool check_film();
 // 보통 딱 마지막거 하나 틀렸으면 그건 기초적인거 하나 빠진거래!
 int main(){
     ios_base::sync_with_stdio(false);
@@ -23,28 +28,32 @@ int main(){
     for(int t=1;t<=T;t++){
         cin >> DEPTH >> WIDTH >> K;
         
-        film.resize(DEPTH);
+//        film.resize(DEPTH);
         for(int d =0; d<DEPTH; d++){
-            film[d].resize(WIDTH);
+//            film[d].resize(WIDTH);
             for(int w =0; w<WIDTH; w++){
                 cin >> film[d][w];
+                film_test[d][w] = film[d][w];
             }
         }
         
-        film_test = film;
+//        film_test = film;
+        
         // !! 처음에 0이 계속 거슬리는거니까 따로 체크
-        if(K==1||check_film(film_test)==PASS){
+        if(K==1||check_film()==PASS){
             cout<< "#" << t << " " << 0 << "\n";
         }else{
             // 처음에 resize
             // !! 문제 : 단일 약품이 아닐때는 처리가 안되는 문제!!(약을 ㅅ
             for(int max_med=1; max_med<=K; max_med++){
-                med_info.clear();
-                med_info.resize(DEPTH, EMPTY);
+//                med_info.clear();
+//                med_info.resize(DEPTH, EMPTY);
+                memset(med_info, EMPTY, sizeof(med_info));
                 find_min_med(max_med,0,1,0);
                 //med_info 초기화하고 다른약으로 테스트
-                med_info.clear();
-                med_info.resize(DEPTH, EMPTY);
+//                med_info.clear();
+//                med_info.resize(DEPTH, EMPTY);
+                memset(med_info, EMPTY, sizeof(med_info));
                 find_min_med(max_med,0,1,1);
                 
                 if(find_or_not==true){
@@ -53,9 +62,13 @@ int main(){
                 }
             }
         }
-        film.clear();
-        film_test.clear();
-        med_info.clear();
+        
+        memset(film, EMPTY, sizeof(film));
+        memset(film_test, EMPTY, sizeof(film_test));
+//        film.clear();
+//        film_test.clear();
+//        med_info.clear();
+        memset(med_info, EMPTY, sizeof(med_info));
         find_or_not=false;
     }
     return 0;
@@ -73,7 +86,7 @@ void find_min_med(int med_max_num, int current_idx, int current_med_num,int med)
     
     // 합격하는지 확인하기
     // 딱 그 개수일때만 체크하면 되잖아
-    if(current_med_num==med_max_num&&check_film(film_test)==PASS){ // 합격 하면 break
+    if(current_med_num==med_max_num&&check_film()==PASS){ // 합격 하면 break
 //        cout << med_max_num;
         // !! recursion에서 find를 return 하면 문제 있겠지?
         find_or_not = true;
@@ -102,7 +115,7 @@ void find_min_med(int med_max_num, int current_idx, int current_med_num,int med)
         
 }
 
-bool check_film(vector<vector <short> > &film_test){
+bool check_film(){
     // 처음걸로 찾기
     
     // column 별로 움직이기 -> 하나라도 안된다면 not pass
