@@ -41,6 +41,7 @@ int main(int argc, const char * argv[]) {
     }
     divisions[1] = 1; // 1번은 고정해서 똑같은 조합인데 1과 0이 뒤집히는 일은 업섹 하기
     find_fair_division(2);
+
     if(min_diff!=INT_MAX)
         cout << min_diff;
     else
@@ -49,19 +50,19 @@ int main(int argc, const char * argv[]) {
 }
 
 void find_fair_division(int current_idx){
-//    bool visited[MAX_N+5];
-//    fill(&visited[0], &visited[MAX_N+5], false);
-    
-    for(int num=0; num<=1; num++){
-        divisions[current_idx] = num;
+    // 깊이 원하는만큼 들어갔을때 체크
+    if(current_idx==N+1){
         int test_result = test_connectivity();
         if(test_result!= NOT_AVAIL){ // 차를 abs로 받기(차가 -1은 나올리가 없음)
             if(test_result<min_diff){
                 min_diff = test_result;
             }
         }
-        if(current_idx+1<=N)
+    }else{
+        for(int num=0; num<=1; num++){
+            divisions[current_idx] = num; // 1번은 고정해서 똑같은 조합인데 1과 0이 뒤집히는 일은 업섹 하기
             find_fair_division(current_idx+1);
+        }
     }
 }
 
@@ -77,14 +78,14 @@ int test_connectivity(){
         if(div_num ==1){
             test_que.push(1);
             visited[1] = div_num;
-            two_total[1] += divisions_people_info[1];
+            two_total[1] += divisions_people_info[1]; // !!! 여기서 추가를 안했구나 ㅜㅜ
         }else{
             // 최초의 0을 찾기
             for(int i=1;i<=N;i++){
                 if(divisions[i]==0){
                     test_que.push(i);
                     visited[i] = div_num;
-                    two_total[0] += divisions_people_info[i];
+                    two_total[0] += divisions_people_info[i]; // !! 여기서 추가를 안해쑥나
                     break;
                 }
             }
