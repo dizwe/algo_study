@@ -34,16 +34,21 @@ void find_max_profit(){
     }
 }
 
+// ~~dfs를 현재로 할거냐 미래로 할거냐 있을 수 있는데, 현재로 해야지!
 void explore(int idx, int profit){
+    // ~~ 끝날 떄 조건은 제일 앞에
     if(idx > N){
         if(profit>max_profit) max_profit= profit; // !! ㅋㅋ 끝나고 나서 해야된다.
     }
+    // ~~ 백트래킹이라면, 보통 dfs에서는 for loop 가 있겟지
+    // 이 문제에서 for loop는 스킵하고 넘기는 개념
     for(int ch_idx = idx; ch_idx<= N; ch_idx++){ // !! 여기서도 돌아가는거 만들어야지
-        // 현재로 할건지 다음으로 할건지 정해야지!! 근데 현재로 하는게 더 직관적
         int next_date = ch_idx + customer_info[ch_idx].date;
+        // ~~ 경계 이내의 것은 그대로 계산하면 됨.
         if(next_date<=N+1){// 상담 끝나는 날이 퇴사일이 아니라면(퇴사일이 다음 일이면 안잡으면 되니까! =붙이기
             explore(next_date, profit + customer_info[ch_idx].profit);
         }else{
+            // ~~ !! 보통은 경계를 넘고 종료하는데 그 경계를 넘으려 할 때 아무것도 안하는게 중요하다
             explore(next_date, profit);
         }
     }
