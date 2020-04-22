@@ -32,17 +32,6 @@ void find_max_alchol(int n){
     cup_profit[n] =  max(cup_profit[n-1],cup_profit[n-2]+cup[n]);
     // 혹은 앞에거랑 나랑 붙이되, 그 앞앞에걸 넣는게 좋을지
     cup_profit[n] = max(cup_profit[n],cup_profit[n-3]+cup[n-1]+cup[n]);
-    // 이 로직 구현을 위해서 concat_check도 만들고 했었는데 훨씬 간단하다..
-    //    int concat_num;
-    //    if(concat_check[n-1]==true){ // 꼭 concat 아닐 때 붙어도 상관없음
-    //        concat_num = (cup_profit[n-1]-cup[n-2])+cup[n];
-    //    }else{
-    //        concat_num= cup_profit[n-1]+cup[n];
-    //    }
-    //    if(cup_profit[n]<concat_num){
-    //        cup_profit[n] = concat_num;
-    //        concat_check[n] = true;
-    //    }
     find_max_alchol(n+1);
 }
 
