@@ -32,11 +32,10 @@ void find_prime(){
     }
 }
 
-int main(int argc, const char * argv[]) {
+void o_n_way(){
     fill(&prime_list[0], &prime_list[MAX_SIZE + 2], false);
     find_prime(); // 소수 찾기
     
-    cin >> two_num[0] >> two_num[1];
     bool divided = true;
     while(divided){
         divided = false; // 나눠지면 나중에 true로 바뀜
@@ -67,6 +66,31 @@ int main(int argc, const char * argv[]) {
         cout << max_div * two_num[0] *two_num[1];
     else // 값이 같으면
         cout << max_div * two_num[0];
+}
+
+int gcd(int a, int b){
+    if ((a%b)==0){
+        return b;
+    }else{
+        return gcd(b, a%b);
+    }
+}
+
+void o_log_n_way(){
+    int gcd_num;
+    if(two_num[0]> two_num[1]){
+        gcd_num = gcd(two_num[0], two_num[1]);
+    }else{
+        gcd_num = gcd(two_num[1], two_num[0]);
+    }
+    cout << gcd_num << "\n";
+    
+    cout << two_num[0]*two_num[1]/gcd_num;
+}
+
+int main(int argc, const char * argv[]) {
+    cin >> two_num[0] >> two_num[1];
+    o_log_n_way();
     
     return 0;
 }
